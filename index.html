@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Vercel Thermal Printer Test</title>
-    <!-- Bootstrap 5 -->
+    <title>Bluetooth Thermal Printer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -18,54 +17,67 @@
 <body>
 
 <div class="container text-center">
-    <h1 class="mb-4">🖨️ Print to Thermal Printer</h1>
-    <p class="lead">Click the button below to print a test receipt using the RawBT app!</p>
+    <h1 class="mb-4">🖨️ Print to Bluetooth Thermal Printer</h1>
+    <p class="lead">Click the button below to print a test receipt directly via Bluetooth.</p>
 
-    <!-- Print Button with Fixed Intent URL Scheme -->
-    <button id="printBtn" class="btn btn-success btn-lg mt-3">
-        🖨️ Print Receipt
+    <!-- Button to start the Bluetooth connection -->
+    <button id="connectBtn" class="btn btn-primary btn-lg mt-3">
+        🖨️ Connect and Print Receipt
     </button>
 
     <p class="text-muted mt-5 small">
-        * Ensure your thermal printer is connected via Bluetooth and the RawBT app is installed.
-    </p>
-
-    <!-- QR Code for RawBT Print -->
-    <h4 class="mt-5">Or Scan the QR Code to Print</h4>
-    <a href="https://api.qrserver.com/v1/create-qr-code/?data=rawbt:Hello%20World&size=200x200" target="_blank">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?data=rawbt:Hello%20World&size=200x200" alt="QR code for RawBT print">
-    </a>
-    <p class="text-muted mt-2 small">
-        Scan to test printing with RawBT app.
+        * Ensure your Bluetooth thermal printer is paired and in range.
     </p>
 </div>
 
 <script>
-    // Event listener for button click to use RawBT link
-    document.getElementById('printBtn').addEventListener('click', function (e) {
-        e.preventDefault();
+    // Function to connect and print to Bluetooth printer
+    async function connectAndPrint() {
+        try {
+            // Request Bluetooth device that supports the required service (Bluetooth Serial Port Profile)
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['00001101-0000-1000-8000-00805f9b34fb'] }] // Bluetooth SPP service (Serial Port Profile)
+            });
 
-        // Content to be printed
-        let text = "";
-        text += "     ★ MY SHOP ★\n";
-        text += "-----------------------------\n";
-        text += "Date: " + new Date().toLocaleString() + "\n";
-        text += "-----------------------------\n";
-        text += "Product A      ₱100.00\n";
-        text += "Product B      ₱50.00\n";
-        text += "Product C      ₱75.00\n";
-        text += "-----------------------------\n";
-        text += "TOTAL:         ₱225.00\n";
-        text += "-----------------------------\n";
-        text += "Thank you for shopping!\n";
-        text += "\n\n\n"; // Extra newlines are important!
+            // Connect to the device
+            const server = await device.gatt.connect();
 
-        // URL encode the text
-        let encodedText = encodeURIComponent(text);
+            // Get the Bluetooth characteristic that will send the data (a writing characteristic)
+            const service = await server.getPrimaryService('00001101-0000-1000-8000-00805f9b34fb');
+            const characteristic = await service.getCharacteristic('00001101-0000-1000-8000-00805f9b34fb');
 
-        // Use rawbt link format to trigger the RawBT app with content
-        window.location.href = "rawbt:" + encodedText;
-    });
+            // Construct the data to send to the printer
+            let data = [
+                0x1B, 0x40, // ESC @ (initialize printer)
+                0x1B, 0x45, 0x01, // Bold ON
+                ...new TextEncoder().encode("★ MY SHOP ★\n"), // Receipt header
+                0x1B, 0x45, 0x00, // Bold OFF
+                0x1B, 0x61, 0x01, // Align Center
+                ...new TextEncoder().encode("Date: " + new Date().toLocaleString() + "\n"),
+                ...new TextEncoder().encode("Product A      ₱100.00\n"),
+                ...new TextEncoder().encode("Product B      ₱50.00\n"),
+                ...new TextEncoder().encode("Product C      ₱75.00\n"),
+                ...new TextEncoder().encode("-----------------------------\n"),
+                ...new TextEncoder().encode("TOTAL:         ₱225.00\n"),
+                ...new TextEncoder().encode("-----------------------------\n"),
+                ...new TextEncoder().encode("Thank you for shopping!\n"),
+                0x0A, 0x0A, 0x0A // Newline to finish the receipt
+            ];
+
+            // Write the data to the printer
+            await characteristic.writeValue(new Uint8Array(data));
+
+            // Close the connection
+            await server.disconnect();
+            alert('Printing completed successfully!');
+        } catch (error) {
+            console.error('Error connecting to the printer: ', error);
+            alert('Failed to connect or print. Please try again.');
+        }
+    }
+
+    // Button click event to start the process
+    document.getElementById('connectBtn').addEventListener('click', connectAndPrint);
 </script>
 
 </body>

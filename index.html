@@ -2,53 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Thermal Printer Test via RawBT</title>
+    <title>Vercel Thermal Printer Test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: #f0f2f5;
+            background: #f8f9fa;
+        }
+        .container {
+            margin-top: 100px;
         }
     </style>
 </head>
-<body class="d-flex justify-content-center align-items-center vh-100">
+<body>
 
-    <div class="text-center">
-        <h1 class="mb-4">🖨️ Bluetooth Printer Test</h1>
-        
-        <p class="lead mb-4">
-            Click the button below to print via RawBT App.
-        </p>
-        
-        <a href="#" id="printBtn" class="btn btn-success btn-lg">
-            Print Receipt
-        </a>
+<div class="container text-center">
+    <h1 class="mb-4">🖨️ Print to Thermal Printer</h1>
+    <p class="lead">Click the button below to print a test receipt using RawBT app!</p>
 
-        <p class="mt-5 text-muted small">* Make sure your printer is paired and RawBT app is installed.</p>
-    </div>
+    <button id="printBtn" class="btn btn-success btn-lg mt-3">🖨️ Print Receipt</button>
 
-    <script>
-        document.getElementById('printBtn').addEventListener('click', function (e) {
-            e.preventDefault();
-            
-            let text = "";
-            text += "     *** RECEIPT ***\n";
-            text += "===========================\n";
-            text += "Store: My Test Shop\n";
-            text += "Date: " + new Date().toLocaleString() + "\n";
-            text += "---------------------------\n";
-            text += "Item 1         ₱100.00\n";
-            text += "Item 2         ₱50.00\n";
-            text += "---------------------------\n";
-            text += "TOTAL          ₱150.00\n";
-            text += "===========================\n";
-            text += "Thank you!\n\n\n\n"; // important extra newlines!
+    <p class="text-muted mt-5 small">
+        * Make sure your thermal printer is connected via Bluetooth and the RawBT app is installed.
+    </p>
+</div>
 
-            // Encode for RawBT
-            let encodedText = encodeURIComponent(text);
-            window.location.href = "rawbt:" + encodedText;
-        });
-    </script>
+<script>
+    document.getElementById('printBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+
+        // Receipt content
+        let text = "";
+        text += "     ★ MY SHOP ★\n";
+        text += "-----------------------------\n";
+        text += "Date: " + new Date().toLocaleString() + "\n";
+        text += "-----------------------------\n";
+        text += "Product A      ₱100.00\n";
+        text += "Product B      ₱50.00\n";
+        text += "Product C      ₱75.00\n";
+        text += "-----------------------------\n";
+        text += "TOTAL:         ₱225.00\n";
+        text += "-----------------------------\n";
+        text += "Thank you for shopping!\n";
+        text += "\n\n\n"; // extra newlines important!
+
+        // Encode the text for URL
+        let encodedText = encodeURIComponent(text);
+
+        // Use the RawBT protocol to print
+        window.location.href = "rawbt:" + encodedText;
+    });
+</script>
 
 </body>
 </html>

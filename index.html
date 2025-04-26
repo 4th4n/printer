@@ -34,23 +34,30 @@
     // Function to connect and print to Bluetooth printer
     async function connectAndPrint() {
         try {
-            // Request Bluetooth device that supports the required service (Bluetooth Serial Port Profile)
+            console.log("Requesting Bluetooth device...");
+            // Request Bluetooth device (Serial Port Profile service)
             const device = await navigator.bluetooth.requestDevice({
-                filters: [{ services: ['00001101-0000-1000-8000-00805f9b34fb'] }] // Bluetooth SPP service (Serial Port Profile)
+                filters: [{ services: ['00001101-0000-1000-8000-00805f9b34fb'] }] // SPP service UUID
             });
+            console.log("Device selected:", device);
 
             // Connect to the device
             const server = await device.gatt.connect();
+            console.log("Connected to server:", server);
 
-            // Get the Bluetooth characteristic that will send the data (a writing characteristic)
+            // Get the printer service
             const service = await server.getPrimaryService('00001101-0000-1000-8000-00805f9b34fb');
-            const characteristic = await service.getCharacteristic('00001101-0000-1000-8000-00805f9b34fb');
+            console.log("Got service:", service);
 
-            // Construct the data to send to the printer
+            // Get the characteristic to write to
+            const characteristic = await service.getCharacteristic('00001101-0000-1000-8000-00805f9b34fb');
+            console.log("Got characteristic:", characteristic);
+
+            // Data to send to the printer (ESC/POS commands)
             let data = [
                 0x1B, 0x40, // ESC @ (initialize printer)
                 0x1B, 0x45, 0x01, // Bold ON
-                ...new TextEncoder().encode("★ MY SHOP ★\n"), // Receipt header
+                ...new TextEncoder().encode("★ MY SHOP ★\n"),
                 0x1B, 0x45, 0x00, // Bold OFF
                 0x1B, 0x61, 0x01, // Align Center
                 ...new TextEncoder().encode("Date: " + new Date().toLocaleString() + "\n"),
@@ -66,19 +73,20 @@
 
             // Write the data to the printer
             await characteristic.writeValue(new Uint8Array(data));
+            console.log("Data written successfully!");
 
-            // Close the connection
+            // Disconnect after printing
             await server.disconnect();
             alert('Printing completed successfully!');
         } catch (error) {
-            console.error('Error connecting to the printer: ', error);
-            alert('Failed to connect or print. Please try again.');
+            console.error("Error:", error);
+            alert('Failed to connect or print. Please check your printer and Bluetooth settings.');
         }
     }
 
     // Button click event to start the process
     document.getElementById('connectBtn').addEventListener('click', connectAndPrint);
 </script>
-
+mmmmm
 </body>
 </html>

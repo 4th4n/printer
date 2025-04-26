@@ -21,13 +21,13 @@
     <h1 class="mb-4">🖨️ Print to Thermal Printer</h1>
     <p class="lead">Click the button below to print a test receipt using the RawBT app!</p>
 
-    <!-- Print Button using intent:// -->
-    <a href="intent://print/#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end" class="btn btn-success btn-lg mt-3">
+    <!-- Print Button with Fixed Intent URL Scheme -->
+    <button id="printBtn" class="btn btn-success btn-lg mt-3">
         🖨️ Print Receipt
-    </a>
+    </button>
 
     <p class="text-muted mt-5 small">
-        * Make sure your thermal printer is connected via Bluetooth and the RawBT app is installed.
+        * Ensure your thermal printer is connected via Bluetooth and the RawBT app is installed.
     </p>
 
     <!-- QR Code for RawBT Print -->
@@ -41,11 +41,11 @@
 </div>
 
 <script>
-    // Event listener for button click if you want custom print content
-    document.getElementById('printBtn')?.addEventListener('click', function (e) {
+    // Event listener for button click to use RawBT link
+    document.getElementById('printBtn').addEventListener('click', function (e) {
         e.preventDefault();
 
-        // Receipt content
+        // Content to be printed
         let text = "";
         text += "     ★ MY SHOP ★\n";
         text += "-----------------------------\n";
@@ -58,12 +58,12 @@
         text += "TOTAL:         ₱225.00\n";
         text += "-----------------------------\n";
         text += "Thank you for shopping!\n";
-        text += "\n\n\n"; // extra newlines important!
+        text += "\n\n\n"; // Extra newlines are important!
 
-        // Encode the text for URL
+        // URL encode the text
         let encodedText = encodeURIComponent(text);
 
-        // Use the RawBT protocol to print
+        // Use rawbt link format to trigger the RawBT app with content
         window.location.href = "rawbt:" + encodedText;
     });
 </script>
